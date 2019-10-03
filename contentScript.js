@@ -9,16 +9,16 @@ chrome.runtime.onMessage.addListener(
 
 				document.querySelectorAll(querySelection).forEach(el => { // get all the input elements of supported type
 					if (el.value) // don't mind empty inputs
-						if (el.id && document.querySelectorAll(el.id).length == 1) // If we can, we want to store reference to the ID rather than node index, but not all websites ID their inputs and some have duplicate IDs :/
+						if (el.id && document.querySelectorAll("#" + el.id).length == 1) // If we can, we want to store reference to the ID rather than node index, but not all websites ID their inputs and some have duplicate IDs :/
 							inputs.push([el.id, el.value]);
 						else
 							inputs.push([nodes.indexOf(el), el.value]); // get the index of the input in the array of all elements (please forgive me ^n^)
-						});
+				});
 				sendResponse(inputs);
 				break;
 			case "fillFormData":
 				request.elements.forEach(el => {
-					if(typeof el[0] == "string")
+					if (typeof el[0] == "string")
 						document.querySelector(`#el[0]`).value = el[1];
 					else
 						nodes[el[0]].value = el[1];

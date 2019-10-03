@@ -27,7 +27,7 @@ function updateStashList() {
 	stashList.innerHTML = "";
 	chrome.tabs.query({ active: true, currentWindow: true }, tab => {
 		chrome.storage.sync.get(null, stashes => Object.keys(stashes).forEach(stash => {
-			if (stash.split("|")[0] == tab[0].url) {
+			if (stash.split("|")[0].includes(tab[0].url) || tab[0].url.includes(stash.split("|")[0])) {
 				let li = document.createElement("li");
 				let a = document.createElement("a");
 				a.id = stash;

@@ -9,6 +9,11 @@ const stashList = document.querySelector("#stashList")
 				a.text = stash.split("|")[1];
 				a.href = "#";
 				a.class = "stashItem"
+				a.addEventListener("click", e => {
+					e.preventDefault();
+					// populate the web page with the stash data
+					chrome.tabs.sendMessage(tab[0].id, {action: "fillFormData", elements: stashes[stash]});
+				})
 				li.appendChild(a);
 				stashList.appendChild(li);
 			}

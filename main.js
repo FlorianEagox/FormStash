@@ -1,16 +1,18 @@
 // populate the popup with the existing stashes
 const stashList = document.querySelector("#stashList")
-chrome.storage.sync.get(null, stashes => Object.keys(stashes).forEach(stash => {
-	console.log("beep");
-	let li = document.createElement("li");
-	let a = document.createElement("a");
-	a.id = stash;
-	a.text = stash.split("|")[1];
-	a.href = "#";
-	a.class = "stashItem"
-	li.appendChild(a);
-	stashList.appendChild(li);
-}));
+	chrome.tabs.query({active: true, currentWindow: true}, tab => {
+		chrome.storage.sync.get(null, stashes => Object.keys(stashes).forEach(stash => {
+			if(stash.split("|")[0] == tab[0].url) {
+				let li = document.createElement("li");
+				let a = document.createElement("a");
+				a.id = stash;
+				a.text = stash.split("|")[1];
+				a.href = "#";
+				a.class = "stashItem"
+				li.appendChild(a);
+				stashList.appendChild(li);
+			}
+	}))});
 
 // Inject our content scripts
 chrome.tabs.executeScript({ file: 'input.js' });

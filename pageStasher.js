@@ -13,9 +13,11 @@ chrome.runtime.onMessage.addListener(
 					else
 						inputs.push(new Input(nodes.indexOf(el), el.value)); // get the index of the input in the array of all elements (please forgive me ^n^)
 			});
-			
+			delete nodes;
+			//For now return as array
+			sendResponse({formData: inputs});
 			// return the form data for the page as base64 encoded JSON so it can be stored.
-			sendResponse({formData: btoa(JSON.stringify(inputs))});
+			//sendResponse({formData: btoa(JSON.stringify(inputs))});
 		}
 	}
 );

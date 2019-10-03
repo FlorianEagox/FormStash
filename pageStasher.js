@@ -15,9 +15,7 @@ chrome.runtime.onMessage.addListener(
 			});
 			delete nodes;
 			//For now return as array
-			sendResponse({formData: inputs});
-			// return the form data for the page as base64 encoded JSON so it can be stored.
-			//sendResponse({formData: btoa(JSON.stringify(inputs))});
+			sendResponse(inputs);
 		}
 	}
 );

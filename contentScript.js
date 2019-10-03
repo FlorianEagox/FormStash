@@ -19,7 +19,7 @@ chrome.runtime.onMessage.addListener(
 			case "fillFormData":
 				request.elements.forEach(el => {
 					if (typeof el[0] == "string")
-						document.querySelector(`#el[0]`).value = el[1];
+						document.querySelector("#" + el[0]).value = el[1];
 					else
 						nodes[el[0]].value = el[1];
 				});

@@ -83,6 +83,7 @@ function displayStashes() {
 						if(chkEnableLive.checked) { // if we check the box, set the content script's stash to this one, and add the event listeners.
 							chrome.tabs.sendMessage(tabs[0].id, { action: "setCheckedStash", newStash: stash });
 							chrome.tabs.sendMessage(tabs[0].id, { action: "enableLiveUpdate" });
+							document.querySelectorAll("label").forEach(label => label.classList.remove("accented")); //un check the other labels
 							lblCheck.classList.add("accented");
 						} else { // if we uncheck, stop updating.
 							chrome.tabs.sendMessage(tabs[0].id, { action: "disableLiveUpdate" });

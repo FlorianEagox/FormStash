@@ -1,6 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Form Stash",
+	"author": "Seth Painter",
 	"description": "Quickly stash the contents of HTML forms and reload them later.",
 	"version": "1.0.0",
 	"icons": {

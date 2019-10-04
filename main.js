@@ -22,7 +22,7 @@ function createNewStash(e) {
 			if (!stashName) {
 				// go through the existing stashes and figure out how many we already have for this page
 				chrome.storage.sync.get(null, stashes => {
-					let stashIndex = Object.keys(stashes).filter(key => key.includes(tabs[0].url)).length;
+					let stashIndex = 1 + Object.keys(stashes).filter(key => key.includes(tabs[0].url)).length;
 					const now = new Date();
 
 					keyName += `Stash ${stashIndex} ${now.toLocaleDateString().substring(0, now.toLocaleDateString().length - 4)}${now.getFullYear().toString().substr(-2)} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;

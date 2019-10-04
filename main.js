@@ -8,7 +8,7 @@ chrome.tabs.executeScript({ file: 'contentScript.js' });
 document.querySelector("#stashInfo").addEventListener("submit", e => {
 	e.preventDefault();
 	createNewStash();
-	
+
 });
 
 
@@ -24,7 +24,7 @@ function createNewStash(e) {
 				chrome.storage.sync.get(null, stashes => {
 					let stashIndex = Object.keys(stashes).filter(key => key.includes(tabs[0].url)).length;
 					const now = new Date();
-					
+
 					keyName += `Stash ${stashIndex} ${now.toLocaleDateString().substring(0, now.toLocaleDateString().length - 4)}${now.getFullYear().toString().substr(-2)} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 					chrome.storage.sync.set({ [keyName]: response });
 					updateStashList();
@@ -55,15 +55,23 @@ function updateStashList() {
 					chrome.tabs.sendMessage(tab[0].id, { action: "fillFormData", elements: stashes[stash] });
 				})
 				li.appendChild(a);
-				
+
+				const chkEnableLive = document.createElement("input");
+				chkEnableLive.type = "checkbox";
+				chkEnableLive.class = "chkEnLive";
+				chkEnableLive.title = "Auto Update Stash"
+				chkEnableLive.addEventListener("change", e => {
+					chrome.tabs.query({ active: true, currentWindow: true }, tabs =>{
+						chrome.tabs.sendMessage(tabs[0].id, { action: "enableLiveUpdate", key: stash, elements: stashes[stash]})
+					});
+				});
+				li.appendChild(chkEnableLive);
+
 				const btnUpdate = document.createElement("button");
 				btnUpdate.innerHTML = "Update";
 				btnUpdate.className = "btnUpdateStash"
-				btnUpdate.addEventListener("click", e =>
-					chrome.tabs.query({active: true, currentWindow: true}, tabs =>
-						chrome.tabs.sendMessage(tabs[0].id, {action: "retrieveFormData"}, response =>
-							chrome.storage.sync.set({[stash]: response})
-				)));
+				btnUpdate.addEventListener("click", () => updateStashData(stash));
+					
 				li.appendChild(btnUpdate);
 
 				const btnDelete = document.createElement("button");
@@ -78,4 +86,11 @@ function updateStashList() {
 			}
 		}))
 	});
+}
+
+function updateStashData(stash) {
+	chrome.tabs.query({ active: true, currentWindow: true }, tabs =>
+		chrome.tabs.sendMessage(tabs[0].id, { action: "retrieveFormData" }, response =>
+			chrome.storage.sync.set({ [stash]: response })
+		));
 }

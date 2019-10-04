@@ -1,5 +1,6 @@
 // populate the popup with the existing stashes
 const stashList = document.querySelector("#stashList");
+const noStashes = document.querySelector("#noStashes");
 displayStashes();
 
 // Inject our content scripts
@@ -8,7 +9,6 @@ chrome.tabs.executeScript({ file: 'contentScript.js' });
 document.querySelector("#stashInfo").addEventListener("submit", e => {
 	e.preventDefault();
 	createNewStash();
-
 });
 
 function createNewStash(e) {
@@ -39,18 +39,12 @@ function createNewStash(e) {
 
 function displayStashes() {
 	stashList.innerHTML = ""; // clear the existing ones
-	
-	const p = document.createElement('p');
-	p.className = "faint";
-	p.innerHTML = "You have no stashes for this page.";
-	document.querySelector("header").after(p);
-
-
+	noStashes.hidden = false;
 	chrome.tabs.query({ active: true, currentWindow: true }, tab => {
 		// get all the stashes and filter them if they're from this page.
 		chrome.storage.sync.get(null, stashes => Object.keys(stashes).filter(
 			stash => stash.split("|")[0].includes(tab[0].url) || tab[0].url.includes(stash.split("|")[0])).forEach(stash => {
-				p.hidden = true;
+				noStashes.hidden = true;
 				let li = document.createElement("li");
 				let a = document.createElement("a");
 				a.id = stash;

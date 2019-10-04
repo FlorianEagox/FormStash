@@ -3,10 +3,10 @@
 const unsupportedInputTypes = ["submit", "button", "image", "file", "hidden", "password", "reset"]; //All the inputs our extension will ignore
 const validInputQuerySelection = "input:not([type=" + unsupportedInputTypes.join("]):not([type=") + "]), textarea";
 let currentStash; // This is for the auto tracking. Keeps track of which stash is checked (or none)
+const nodes = Array.prototype.slice.call(document.querySelectorAll("*")); // create an array of all dom elements
 
 chrome.runtime.onMessage.addListener(
-	(request, sender, sendResponse) => {
-		const nodes = Array.prototype.slice.call(document.querySelectorAll("*")); // create an array of all dom elements
+	(request, sender, sendResponse) => {		
 		switch (request.action) {
 			case "retrieveFormData":
 				sendResponse(retrieveFormData());

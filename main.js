@@ -1,6 +1,6 @@
 // populate the popup with the existing stashes
 const stashList = document.querySelector("#stashList");
-updateStashList();
+displayStashes();
 
 // Inject our content scripts
 chrome.tabs.executeScript({ file: 'contentScript.js' });
@@ -26,28 +26,28 @@ function createNewStash(e) {
 
 					keyName += `Stash ${stashIndex} ${now.toLocaleDateString().substring(0, now.toLocaleDateString().length - 4)}${now.getFullYear().toString().substr(-2)} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 					chrome.storage.sync.set({ [keyName]: response });
-					updateStashList();
+					displayStashes();
 				});
 			} else {
 				keyName += stashName;
 				chrome.storage.sync.set({ [keyName]: response });
-				updateStashList();
+				displayStashes();
 			}
 			document.querySelector("#stashName").value = "";
 		}));
 }
 
-function updateStashList() {
-	stashList.innerHTML = "";
+function displayStashes() {
+	stashList.innerHTML = ""; // clear the existing ones
 	chrome.tabs.query({ active: true, currentWindow: true }, tab => {
-		chrome.storage.sync.get(null, stashes => Object.keys(stashes).forEach(stash => {
-			if (stash.split("|")[0].includes(tab[0].url) || tab[0].url.includes(stash.split("|")[0])) {
+		chrome.storage.sync.get(null, stashes => Object.keys(stashes).forEach(stash => { // get all the stashes
+			if (stash.split("|")[0].includes(tab[0].url) || tab[0].url.includes(stash.split("|")[0])) { // if you're on a page you've saved a stash for
 				let li = document.createElement("li");
 				let a = document.createElement("a");
 				a.id = stash;
 				a.text = stash.split("|")[1];
-				a.href = "#";
-				a.class = "stashItem"
+				a.href = "";
+				a.className = "stashItemName";
 				a.addEventListener("click", e => {
 					e.preventDefault();
 					// populate the web page with the stash data
@@ -55,40 +55,59 @@ function updateStashList() {
 				})
 				li.appendChild(a);
 
+				const controls = document.createElement("div");
+				controls.className = "stashControls";
+				
+				
 				const chkEnableLive = document.createElement("input");
 				chkEnableLive.type = "checkbox";
 				chkEnableLive.class = "chkEnLive";
+				chkEnableLive.id = "chk" + stash;
 				chkEnableLive.title = "Auto Update Stash"
+				// check if the current stash is the selected one
 				chrome.tabs.query({active: true, currentWindow: true}, tabs => 
 					chrome.tabs.sendMessage(tabs[0].id, {action: "getCheckedStash"}, response => 
 						chkEnableLive.checked = (response == stash)
 				));
-				chkEnableLive.addEventListener("change", e => {
+
+				chkEnableLive.addEventListener("change", e =>
 					chrome.tabs.query({ active: true, currentWindow: true }, tabs =>{
-						if(chkEnableLive.checked) {
+						if(chkEnableLive.checked) { // if we check the box, set the content script's stash to this one, and add the event listeners.
+						console.log("checkers");
 							chrome.tabs.sendMessage(tabs[0].id, { action: "setCheckedStash", newStash: stash });
 							chrome.tabs.sendMessage(tabs[0].id, { action: "enableLiveUpdate" });
-						} else
+						} else // if we uncheck, stop updating.
 							chrome.tabs.sendMessage(tabs[0].id, { action: "disableLiveUpdate" });
-					});
-				});
-				li.appendChild(chkEnableLive);
+				}));
+				controls.appendChild(chkEnableLive);
+
+
+				const lblCheck = document.createElement("label");
+				lblCheck.htmlFor = "chk" + stash;
+				lblCheck.innerHTML = '<i class="fas fa-sync"></i>';
+				lblCheck.addEventListener("click", e => document.querySelector("#chk" + stash).checked = true);
+				controls.appendChild(lblCheck);
+
 
 				const btnUpdate = document.createElement("button");
-				btnUpdate.innerHTML = "Update";
-				btnUpdate.className = "btnUpdateStash"
+				btnUpdate.innerHTML = '<i class="fas fa-edit"></i>';
+				
+				btnUpdate.className = "btnUpdateStash";
 				btnUpdate.addEventListener("click", () => updateStashData(stash));
-					
-				li.appendChild(btnUpdate);
+				btnUpdate.title = "Update This Stash";
+
+				controls.appendChild(btnUpdate);
 
 				const btnDelete = document.createElement("button");
-				btnDelete.innerHTML = "Delete";
+				btnDelete.innerHTML = '<i class="fas fa-trash"></i>';;
 				btnDelete.className = "btnStashDelete";
+				btnDelete.title = "Delete This Stash";
 				btnDelete.addEventListener("click", e => {
-					chrome.storage.sync.remove(stash, result => updateStashList());
+					chrome.storage.sync.remove(stash, result => displayStashes());
 				});
-				li.appendChild(btnDelete);
-
+				controls.appendChild(btnDelete);
+				
+				li.appendChild(controls);
 				stashList.appendChild(li);
 			}
 		}))

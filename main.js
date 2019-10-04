@@ -55,13 +55,25 @@ function updateStashList() {
 					chrome.tabs.sendMessage(tab[0].id, { action: "fillFormData", elements: stashes[stash] });
 				})
 				li.appendChild(a);
-				const deleteBtn = document.createElement("button");
-				deleteBtn.innerHTML = "Delete";
-				deleteBtn.class = "btnStashDelete";
-				deleteBtn.addEventListener("click", e => {
+				
+				const btnUpdate = document.createElement("button");
+				btnUpdate.innerHTML = "Update";
+				btnUpdate.className = "btnUpdateStash"
+				btnUpdate.addEventListener("click", e =>
+					chrome.tabs.query({active: true, currentWindow: true}, tabs =>
+						chrome.tabs.sendMessage(tabs[0].id, {action: "retrieveFormData"}, response =>
+							chrome.storage.sync.set({[stash]: response})
+				)));
+				li.appendChild(btnUpdate);
+
+				const btnDelete = document.createElement("button");
+				btnDelete.innerHTML = "Delete";
+				btnDelete.className = "btnStashDelete";
+				btnDelete.addEventListener("click", e => {
 					chrome.storage.sync.remove(stash, result => updateStashList());
 				});
-				li.appendChild(deleteBtn);
+				li.appendChild(btnDelete);
+
 				stashList.appendChild(li);
 			}
 		}))

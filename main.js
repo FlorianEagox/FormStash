@@ -58,36 +58,38 @@ function displayStashes() {
 				const controls = document.createElement("div");
 				controls.className = "stashControls";
 				
+				const lblCheck = document.createElement("label");
+				lblCheck.htmlFor = "chk" + stash;
+				lblCheck.innerHTML = '<i class="fas fa-sync"></i>';
+				lblCheck.title = "Auto Update Stash"
+				controls.appendChild(lblCheck);
+				
 				
 				const chkEnableLive = document.createElement("input");
 				chkEnableLive.type = "checkbox";
 				chkEnableLive.class = "chkEnLive";
 				chkEnableLive.id = "chk" + stash;
-				chkEnableLive.title = "Auto Update Stash"
-				// check if the current stash is the selected one
+				// check if the current stash is the selected one (this runs when the popup is opened only)
 				chrome.tabs.query({active: true, currentWindow: true}, tabs => 
-					chrome.tabs.sendMessage(tabs[0].id, {action: "getCheckedStash"}, response => 
-						chkEnableLive.checked = (response == stash)
-				));
+					chrome.tabs.sendMessage(tabs[0].id, {action: "getCheckedStash"}, response => {
+						if(response == stash) {
+							chkEnableLive.checked = true;
+							lblCheck.className = "accented";
+						}
+				}));
 
 				chkEnableLive.addEventListener("change", e =>
 					chrome.tabs.query({ active: true, currentWindow: true }, tabs =>{
 						if(chkEnableLive.checked) { // if we check the box, set the content script's stash to this one, and add the event listeners.
-						console.log("checkers");
 							chrome.tabs.sendMessage(tabs[0].id, { action: "setCheckedStash", newStash: stash });
 							chrome.tabs.sendMessage(tabs[0].id, { action: "enableLiveUpdate" });
-						} else // if we uncheck, stop updating.
+							lblCheck.classList.add("accented");
+						} else { // if we uncheck, stop updating.
 							chrome.tabs.sendMessage(tabs[0].id, { action: "disableLiveUpdate" });
+							lblCheck.classList.remove("accented");
+						}
 				}));
 				controls.appendChild(chkEnableLive);
-
-
-				const lblCheck = document.createElement("label");
-				lblCheck.htmlFor = "chk" + stash;
-				lblCheck.innerHTML = '<i class="fas fa-sync"></i>';
-				lblCheck.addEventListener("click", e => document.querySelector("#chk" + stash).checked = true);
-				controls.appendChild(lblCheck);
-
 
 				const btnUpdate = document.createElement("button");
 				btnUpdate.innerHTML = '<i class="fas fa-edit"></i>';

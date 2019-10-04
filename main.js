@@ -39,9 +39,18 @@ function createNewStash(e) {
 
 function displayStashes() {
 	stashList.innerHTML = ""; // clear the existing ones
+	
+	const p = document.createElement('p');
+	p.className = "faint";
+	p.innerHTML = "You have no stashes for this page.";
+	document.querySelector("header").after(p);
+
+
 	chrome.tabs.query({ active: true, currentWindow: true }, tab => {
-		chrome.storage.sync.get(null, stashes => Object.keys(stashes).forEach(stash => { // get all the stashes
-			if (stash.split("|")[0].includes(tab[0].url) || tab[0].url.includes(stash.split("|")[0])) { // if you're on a page you've saved a stash for
+		// get all the stashes and filter them if they're from this page.
+		chrome.storage.sync.get(null, stashes => Object.keys(stashes).filter(
+			stash => stash.split("|")[0].includes(tab[0].url) || tab[0].url.includes(stash.split("|")[0])).forEach(stash => {
+				p.hidden = true;
 				let li = document.createElement("li");
 				let a = document.createElement("a");
 				a.id = stash;
@@ -57,30 +66,30 @@ function displayStashes() {
 
 				const controls = document.createElement("div");
 				controls.className = "stashControls";
-				
+
 				const lblCheck = document.createElement("label");
 				lblCheck.htmlFor = "chk" + stash;
 				lblCheck.innerHTML = '<i class="fas fa-sync"></i>';
 				lblCheck.title = "Auto Update Stash"
 				controls.appendChild(lblCheck);
-				
-				
+
+
 				const chkEnableLive = document.createElement("input");
 				chkEnableLive.type = "checkbox";
 				chkEnableLive.class = "chkEnLive";
 				chkEnableLive.id = "chk" + stash;
 				// check if the current stash is the selected one (this runs when the popup is opened only)
-				chrome.tabs.query({active: true, currentWindow: true}, tabs => 
-					chrome.tabs.sendMessage(tabs[0].id, {action: "getCheckedStash"}, response => {
-						if(response == stash) {
+				chrome.tabs.query({ active: true, currentWindow: true }, tabs =>
+					chrome.tabs.sendMessage(tabs[0].id, { action: "getCheckedStash" }, response => {
+						if (response == stash) {
 							chkEnableLive.checked = true;
 							lblCheck.className = "accented";
 						}
-				}));
+					}));
 
 				chkEnableLive.addEventListener("change", e =>
-					chrome.tabs.query({ active: true, currentWindow: true }, tabs =>{
-						if(chkEnableLive.checked) { // if we check the box, set the content script's stash to this one, and add the event listeners.
+					chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+						if (chkEnableLive.checked) { // if we check the box, set the content script's stash to this one, and add the event listeners.
 							chrome.tabs.sendMessage(tabs[0].id, { action: "setCheckedStash", newStash: stash });
 							chrome.tabs.sendMessage(tabs[0].id, { action: "enableLiveUpdate" });
 							document.querySelectorAll("label").forEach(label => label.classList.remove("accented")); //un check the other labels
@@ -89,12 +98,12 @@ function displayStashes() {
 							chrome.tabs.sendMessage(tabs[0].id, { action: "disableLiveUpdate" });
 							lblCheck.classList.remove("accented");
 						}
-				}));
+					}));
 				controls.appendChild(chkEnableLive);
 
 				const btnUpdate = document.createElement("button");
 				btnUpdate.innerHTML = '<i class="fas fa-edit"></i>';
-				
+
 				btnUpdate.className = "btnUpdateStash";
 				btnUpdate.addEventListener("click", () => updateStashData(stash));
 				btnUpdate.title = "Update This Stash";
@@ -109,11 +118,10 @@ function displayStashes() {
 					chrome.storage.sync.remove(stash, result => displayStashes());
 				});
 				controls.appendChild(btnDelete);
-				
+
 				li.appendChild(controls);
 				stashList.appendChild(li);
-			}
-		}))
+			}));
 	});
 }
 

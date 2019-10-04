@@ -11,7 +11,6 @@ document.querySelector("#stashInfo").addEventListener("submit", e => {
 
 });
 
-
 function createNewStash(e) {
 	chrome.tabs.query({ active: true, currentWindow: true }, tabs => // get the current tab
 		chrome.tabs.sendMessage(tabs[0].id, { action: "retrieveFormData" }, response => { // Tell the content script to collect all the inputs
@@ -60,9 +59,17 @@ function updateStashList() {
 				chkEnableLive.type = "checkbox";
 				chkEnableLive.class = "chkEnLive";
 				chkEnableLive.title = "Auto Update Stash"
+				chrome.tabs.query({active: true, currentWindow: true}, tabs => 
+					chrome.tabs.sendMessage(tabs[0].id, {action: "getCheckedStash"}, response => 
+						chkEnableLive.checked = (response == stash)
+				));
 				chkEnableLive.addEventListener("change", e => {
 					chrome.tabs.query({ active: true, currentWindow: true }, tabs =>{
-						chrome.tabs.sendMessage(tabs[0].id, { action: "enableLiveUpdate", key: stash, elements: stashes[stash]})
+						if(chkEnableLive.checked) {
+							chrome.tabs.sendMessage(tabs[0].id, { action: "setCheckedStash", newStash: stash });
+							chrome.tabs.sendMessage(tabs[0].id, { action: "enableLiveUpdate" });
+						} else
+							chrome.tabs.sendMessage(tabs[0].id, { action: "disableLiveUpdate" });
 					});
 				});
 				li.appendChild(chkEnableLive);

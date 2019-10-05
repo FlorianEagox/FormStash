@@ -16,12 +16,12 @@ function createNewStash(e) {
 		chrome.tabs.sendMessage(tabs[0].id, { action: "retrieveFormData" }, response => { // Tell the content script to collect all the inputs
 			// For stashes un-named by user
 			let keyShortName;
-			let keyName = `${tabs[0].url}|`;
+			let keyName = tabs[0].url + "|";
 			let stashName = document.querySelector("#stashName").value;
 			if (!stashName) {
 				// go through the existing stashes and figure out how many we already have for this page
 				chrome.storage.sync.get(null, stashes => {
-					let stashIndex = 1 + Object.keys(stashes).filter(key => key.includes(tabs[0].url)).length;
+					let stashIndex = 1 + Object.keys(stashes).filter(key => key.includes(stripURL(tabs[0].url))).length;
 					const now = new Date();
 
 					keyName += `Stash ${stashIndex} ${now.toLocaleDateString().substring(0, now.toLocaleDateString().length - 4)}${now.getFullYear().toString().substr(-2)} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
@@ -43,7 +43,7 @@ function displayStashes() {
 	chrome.tabs.query({ active: true, currentWindow: true }, tab => {
 		// get all the stashes and filter them if they're from this page.
 		chrome.storage.sync.get(null, stashes => Object.keys(stashes).filter(
-			stash => stash.split("|")[0].includes(tab[0].url) || tab[0].url.includes(stash.split("|")[0])).forEach(stash => {
+			stash => stash.split("|")[0].includes(stripURL(tab[0].url)) || tab[0].url.includes(stripURL(stash.split("|")[0]))).forEach(stash => {
 				noStashes.hidden = true;
 				let li = document.createElement("li");
 				let a = document.createElement("a");
@@ -124,4 +124,8 @@ function updateStashData(stash) {
 		chrome.tabs.sendMessage(tabs[0].id, { action: "retrieveFormData" }, response =>
 			chrome.storage.sync.set({ [stash]: response })
 		));
+}
+
+function stripURL(url) {
+	return url.split("://")[1].split("?")[0];
 }

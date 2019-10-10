@@ -33,6 +33,9 @@ function createNewStash(e) {
 				chrome.storage.sync.set({ [keyName]: response });
 				displayStashes();
 			}
+			// set the stash to be live update
+			chrome.tabs.sendMessage(tabs[0].id, { action: "setCheckedStash", newStash: keyName });
+			chrome.tabs.sendMessage(tabs[0].id, { action: "enableLiveUpdate" });
 			document.querySelector("#stashName").value = "";
 		}));
 }
@@ -40,10 +43,10 @@ function createNewStash(e) {
 function displayStashes() {
 	stashList.innerHTML = ""; // clear the existing ones
 	noStashes.hidden = false;
-	chrome.tabs.query({ active: true, currentWindow: true }, tab => {
+	chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
 		// get all the stashes and filter them if they're from this page.
 		chrome.storage.sync.get(null, stashes => Object.keys(stashes).filter(
-			stash => stash.split("|")[0].includes(stripURL(tab[0].url)) || tab[0].url.includes(stripURL(stash.split("|")[0]))).forEach(stash => {
+			stash => stash.split("|")[0].includes(stripURL(tabs[0].url)) || tabs[0].url.includes(stripURL(stash.split("|")[0]))).forEach(stash => {
 				noStashes.hidden = true;
 				let li = document.createElement("li");
 				let a = document.createElement("a");
@@ -54,7 +57,12 @@ function displayStashes() {
 				a.addEventListener("click", e => {
 					e.preventDefault();
 					// populate the web page with the stash data
-					chrome.tabs.sendMessage(tab[0].id, { action: "fillFormData", elements: stashes[stash] });
+					chrome.tabs.sendMessage(tabs[0].id, { action: "fillFormData", elements: stashes[stash] });
+					// set the stash to be live update
+					chrome.tabs.sendMessage(tabs[0].id, { action: "setCheckedStash", newStash: stash });
+					chrome.tabs.sendMessage(tabs[0].id, { action: "enableLiveUpdate" });
+					document.querySelectorAll("label").forEach(label => label.classList.remove("accented")); //un check the other labels
+					lblCheck.classList.add("accented");
 				})
 				li.appendChild(a);
 
